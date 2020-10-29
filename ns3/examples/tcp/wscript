@@ -52,3 +52,7 @@ def build(bld):
                                  ['point-to-point', 'internet', 'applications', 'traffic-control', 'network'])
 
     obj.source = 'tcp-linux-reno.cc'
+
+    obj = bld.create_ns3_program('tcp-eyenet',
+                                 ['core', 'point-to-point', 'internet', 'applications', 'network', 'traffic-control'])
+    obj.source = 'tcp-eyenet.cc'
