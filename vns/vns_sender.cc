@@ -4,7 +4,10 @@
 #include <stdlib.h>
 #include <cstring>
 
-#include "args.hh"
+#include "default.hh"
+#include "vns_args.hh"
+#include "vns_packet_sender.hh"
+#include "vns_transport.hh"
 
 using std::cout;
 using std::cerr;
@@ -19,5 +22,18 @@ int32_t main( int32_t argc, char *argv[]) {
         return EXIT_SUCCESS;
     }
 
+    switch (args.cong) {
+        case congestion_type::DEFAULT: {
+            default_cong conn(args.dst_ip);
+            packet_sender<default_cong> pkt_sender (conn, args);
+            pkt_sender.run();
+            break;
+        }
+        case congestion_type::EYENET: {
+            break;
+        }
+        default:
+            break;
+    }
     return EXIT_SUCCESS;
 }

@@ -1,6 +1,3 @@
-#ifndef __TCP_TRANSPORT_H__
-#define __TCP_TRANSPORT_H__
-
 #include <assert.h>
 #include <chrono>
 #include <fstream>
@@ -10,7 +7,7 @@
 #include <string.h>
 #include <thread>
 
-#include "tcp_base.hh"
+#include "vns_transport.hh"
 
 using namespace std;
 using chrono::duration;
@@ -23,42 +20,6 @@ using chrono::duration_cast;
 #define PAYLOAD (PKT_SZ - HDR_SZ)
 #define clk std::chrono::high_resolution_clock
 
-enum node {
-    SENDER,
-    RECEIVER
-};
-
-template <class T>
-class tcp_transport {
-    private:
-        T               cong;
-        node            type;
-        eyenet_socket   sk;
-        string          dip;
-        int32_t         dport,
-                        sport,
-                        bn_train;
-
-        double_t        last_s_ts,
-                        last_r_ts,
-                        last_ack_ts,
-                        delay_aggr,
-                        trans_time_aggr;
-
-        int32_t         largest_ack,
-                        npkts,
-                        nbytes;
-
-        void handshake();
-
-    public:
-        tcp_transport(T cong, string dip, int32_t dport, int32_t sport, int32_t bn_train);
-        tcp_transport( tcp_transport<T> &trans);
-
-        void send_data (double_t fsz, bool byte_switcher, int32_t fid, int32_t sid);
-        void listen_data();
-};
-
 double_t get_curr_ts(clk::time_point &start_ts) {
     clk::time_point curr_ts = clk::now();
     return duration_cast<duration<double_t>>(curr_ts - start_ts).count()*1000;
@@ -69,16 +30,6 @@ tcp_transport<T>::tcp_transport(T cong, string dip, int32_t dport, int32_t sport
     bn_train(bn_train), last_s_ts(0.0), last_r_ts(0.0), last_ack_ts(0.0),
     cong(cong), sk(), type(SENDER), dip(dip), dport(dport), sport(sport),
     largest_ack(NEG), trans_time_aggr(0), delay_aggr(0), npkts(0), nbytes(0)
-{
-    sk.bind_sk(dip, dport, sport);
-}
-
-template <class T>
-tcp_transport<T>::tcp_transport(tcp_transport<T> &trans) :
-    sport(trans.sport), bn_train(trans.bn_train), last_s_ts(0.0), last_r_ts(0.0),
-    last_ack_ts(0.0), largest_ack(NEG), trans_time_aggr(0), delay_aggr(0),
-    cong(trans.cong), sk(), type(trans.type), dip(trans.dip), dport(trans.dport),
-    npkts(0), nbytes(0)
 {
     sk.bind_sk(dip, dport, sport);
 }
@@ -273,5 +224,3 @@ void tcp_transport<T>::send_data( double_t fsz, bool byte_switcher, int32_t fid,
     cout << "\tTPUT : " << tput << "bps" << endl;
     cout << "\tLAT : " << delay << "ms/pkt" << endl;
 }
-
-#endif
