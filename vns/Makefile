@@ -1,4 +1,4 @@
-CXX = g++-9
+CXX = g++
 CXXFLAGS = -std=c++11 -Wpedantic -Wall -Wextra -Weffc++ -Werror -fno-default-inline -O0 -fPIC -ggdb3
 TARGETS = sender #receiver
 
