@@ -6,6 +6,7 @@
 
 #include "default.hh"
 #include "vns_args.hh"
+#include "vns_eyenet.hh"
 #include "vns_packet_sender.hh"
 #include "vns_transport.hh"
 
@@ -23,13 +24,17 @@ int32_t main( int32_t argc, char *argv[]) {
     }
 
     switch (args.cong) {
-        case congestion_type::DEFAULT: {
+        case congestion_type::LINUX: {
             default_cong conn(args.dst_ip);
             packet_sender<default_cong> pkt_sender (conn, args);
             pkt_sender.run();
             break;
         }
         case congestion_type::EYENET: {
+            eyenet cong_control(1.0);
+            tcp_transport<eyenet> conn(cong_control, args);
+            packet_sender< tcp_transport<eyenet> > pkt_sender(conn, args);
+            pkt_sender.run();
             break;
         }
         default:

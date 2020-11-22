@@ -1,33 +1,7 @@
-#ifndef __PACKET_SENDER_H__
-#define __PACKET_SENDER_H__
+/* TEMPLATE functions need to be defined in the header file itself
 
-#include <boost/random/exponential_distribution.hpp>
-#include <boost/random/mersenne_twister.hpp>
 
-#include "vns_args.hh"
-#include "vns_eyenet.hh"
-#include "vns_utils.hh"
-#include "vns_transport.hh"
-
-#define IS_DETERMINISTIC(x) (x == traffic_dist_type::DETERMINISTIC)
-#define IS_BYTE_SWITCHER(x) (x == switching_type::BYTES)
-
-template <class T>
-class packet_sender {
-    private:
-        T                   &tcp_type;
-        int32_t             ncycles;
-        double_t            on_units,
-                            off_units;
-        switching_type      switcher;
-        traffic_dist_type   traffic_dist;
-
-        void update_dist(double_t &on, double_t &off, expo _on, expo _off);
-
-    public:
-        packet_sender(T &type, sender_args args);
-        void run();
-};
+ #include "vns_packet_sender.hh"
 
 template <class T>
 packet_sender<T>::packet_sender(T &type, sender_args args) :
@@ -72,4 +46,4 @@ void packet_sender<T>::run() {
     }
 }
 
-#endif
+ */
