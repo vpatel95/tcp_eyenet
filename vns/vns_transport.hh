@@ -91,7 +91,6 @@ template <class T> void tcp_transport<T>::handshake() {
                     ack_hdr;
     char            buf[PKT_SZ];
     double_t        _last_s_ts = -1E9;
-    bool            corrupt = false;
     sockaddr_in     sk_addr;
 
     memset(&buf, '#', BUF_SZ);
@@ -113,7 +112,6 @@ template <class T> void tcp_transport<T>::handshake() {
             sk.send_data(buf, HDR_SZ * 2, NULL);
 
             _last_s_ts = curr_ts;
-            corrupt = true;
         }
 
         if (0 == (rc = sk.recv_data(buf, PKT_SZ, 200, sk_addr))) {
@@ -124,16 +122,13 @@ template <class T> void tcp_transport<T>::handshake() {
         memcpy(&ack_hdr, buf, HDR_SZ);
         if ((ack_hdr.seq_num != NEG) ||
             (ack_hdr.fid != NEG) ||
-            (ack_hdr.send_ts != -1E9) ||
+            (ack_hdr.send_ts != NEG) ||
             (ack_hdr.sid != NEG)) {
             continue;
         }
 
         break;
     }
-
-    if (!corrupt)
-        cong.initialize();
 
     cout << "Connection Established" << endl;
 }

@@ -1,6 +1,6 @@
-CXX = g++-9
+CXX = g++
 CXXFLAGS = -std=c++11 -Wpedantic -Wall -Wextra -Weffc++ -Werror -fno-default-inline -O0 -fPIC -ggdb3
-TARGETS = vns_sender #vns_receiver
+TARGETS = vns_sender vns_receiver
 
 LIBS := -ljemalloc -lm -pthread -lpthread -lboost_program_options
 INCLUDES := -I .
@@ -16,7 +16,6 @@ all: $(TARGETS)
 vns_sender: $(SENDER_OBJS)
 	@echo Linking $@
 	@$(CXX) $^ -o $@ $(LIBS)
-	@rm -f $^
 
 vns_receiver: $(RECEIVER_OBJS)
 	@echo Linking $@

@@ -26,7 +26,7 @@ using namespace std;
 #define ran boost::random
 #define epoch_count std::chrono::system_clock::now().time_since_epoch().count()
 
-#define msleep(__x) usleep(__x * 1000)
+#define msleep(__x) this_thread::sleep_for(duration<double_t, milli>(unsigned(__x)))
 
 extern ran::mt19937 &PRNG();
 

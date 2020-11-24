@@ -20,7 +20,7 @@ eyenet::eyenet(double_t delta):
     last_update_dir(),
     nack(),
     nlost(),
-    nprobe(),
+    nprobe(10),
     nsent(),
     pkts_rtt(),
     update_dir(),
@@ -58,8 +58,8 @@ eyenet::eyenet(double_t delta):
     utility_type(CONSTANT),
     operation_type(DEFAULT),
     pkt_info(),
-    cwnd(2),
-    intersend(0),
+    cwnd(2.0),
+    intersend(0.0),
     rto(1000)
 {}
 

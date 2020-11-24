@@ -33,13 +33,9 @@ typedef struct sender_args {
                         on_units,
                         off_units,
                         bn_train;
-    double_t            weight,
-                        link_rate;
-    string              log_file,
-                        dst_ip;
+    string              dst_ip;
     traffic_dist_type   traffic_dist;
     switching_type      switcher;
-    bool                logging;
     congestion_type     cong;
 
     sender_args();
