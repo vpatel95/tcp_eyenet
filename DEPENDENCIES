@@ -1,0 +1,13 @@
+g++
+make
+libjemalloc-dev
+libboost-dev
+python3-dev
+ifstat
+iperf
+mahimahi
+tcptrace
+tcpdump
+trash-cli
+python3-dpkt
+python3-numpy
