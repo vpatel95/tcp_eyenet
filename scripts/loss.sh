@@ -41,15 +41,14 @@ case $1 in
                 loss_rate=`awk -v i=$i 'END{if(i < 5)print i * 0.002; else print (i-4) * 0.01}' /dev/null`
                 echo "Running on loss rate = $loss_rate"
 
-                if [[ $tcp == "eyenet" ]];
-                then
-                    delta_conf="do_ss:constant_delta:0.5"
-                    bash run.sh run $output $tcp $sip $dip $trace $mdelay $loss_rate $nsend $qlen $delta_conf $traffic $sender
-
-                elif [[ $tcp == "cubic" ]];
-                then
-                    bash run.sh run $output $tcp $sip $dip $trace $mdelay $loss_rate $nsend $qlen
-                fi
+                case $tcp in
+                    eyenet)
+                        delta_conf="do_ss:constant_delta:0.5"
+                        bash run.sh run $output $tcp $sip $dip $trace $mdelay $loss_rate $nsend $qlen $delta_conf $traffic $sender
+                        ;;
+                    cubic)
+                        bash run.sh run $output $tcp $sip $dip $trace $mdelay $loss_rate $nsend $qlen
+                esac
 
                 if [[ -d ${output}/${tcp}::${loss_rate} ]]; then
                     trash ${output}/${tcp}::${loss_rate}

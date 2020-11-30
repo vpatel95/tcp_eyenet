@@ -27,15 +27,18 @@ case $1 in
             for (( i=0; i < $flows; i++ ));
             do
                 onduration=`expr 2 \* $intersend \* \( $flows - $i - 1 \) + 1`
-                if [[ $tcp == "cubic" ]];
-                then
-                    iperf -c $rip -Z $tcp -t $onduration -p 5001 &
-                    sender_pids="$sender_pids $!"
-                elif [[ $tcp == "eyenet" ]];
-                then
-                    $sender cctype=eyenet serverip=$rip offduration=0 traffic_params=deterministic,num_cycles=1 delta_conf=do_ss:auto:0.5 onduration=`expr $onduration \* 1000`  &
-                    sender_pids="$sender_pids $!"
-                fi
+                case $tcp in
+                    cubic)
+                        iperf -c $rip -Z $tcp -t $onduration -p 5001 &
+                        sender_pids="$sender_pids $!"
+                        ;;
+                    eyenet)
+                        $sender cctype=eyenet serverip=$rip offduration=0 traffic_params=deterministic,num_cycles=1 delta_conf=do_ss:auto:0.5 onduration=`expr $onduration \* 1000`  &
+                        sender_pids="$sender_pids $!"
+                        ;;
+                    *)
+                        ;;
+                esac
                 sleep $intersend
             done
 

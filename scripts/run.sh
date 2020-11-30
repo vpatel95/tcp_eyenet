@@ -62,33 +62,35 @@ case $1 in
         output_file_name
         mkdir -p $of_dir
 
-        if [[ $cong == "eyenet" ]]; then
+        case $cong in
+            eyenet)
+                if [[ $# -ne 3 ]]; then
+                    usage
+                fi
 
-            if [[ $# -ne 3 ]]; then
-                usage
-            fi
+                delta_conf=$1; shift
+                traffic=$1; shift
+                sender=$1
 
-            delta_conf=$1; shift
-            traffic=$1; shift
-            sender=$1
+                export MIN_RTT=`awk -v mdelay=$mdelay 'END{print 2*mdelay;}' /dev/null`
+                mm-delay $mdelay \
+                    mm-loss uplink $loss \
+                    mm-link $trace_uplink $trace_downlink --uplink-log $of_name.uplink --downlink-log $of_name.downlink $queue_length_params \
+                    ./run-sender.sh "$sender sourceip=$sip serverip=$dip cctype=eyenet delta_conf=$delta_conf" $nsend $traffic $run_time $on_duration $off_duration \
+                    1> $of_name.stdout 2> $of_name.stderr
+                ;;
 
-            export MIN_RTT=`awk -v mdelay=$mdelay 'END{print 2*mdelay;}' /dev/null`
-            mm-delay $mdelay \
-                mm-loss uplink $loss \
-                mm-link $trace_uplink $trace_downlink --uplink-log $of_name.uplink --downlink-log $of_name.downlink $queue_length_params \
-                ./run-sender.sh "$sender sourceip=$sip serverip=$dip cctype=eyenet delta_conf=$delta_conf" $nsend $traffic $run_time $on_duration $off_duration \
-                1> $of_name.stdout 2> $of_name.stderr
+            cubic)
+                mm-delay $mdelay \
+                    mm-loss uplink $loss \
+                    mm-link $trace_uplink $trace_downlink --uplink-log $of_name.uplink --downlink-log $of_name.downlink $queue_length_params \
+                    ./run-iperf-sender.sh $dip $on_duration $cong $nsend \
+                    1> $of_name.stdout 2> $of_name.stderr
+                ;;
 
-        elif [[ $cong == "cubic" ]]; then
-            mm-delay $mdelay \
-                mm-loss uplink $loss \
-                mm-link $trace_uplink $trace_downlink --uplink-log $of_name.uplink --downlink-log $of_name.downlink $queue_length_params \
-                ./run-iperf-sender.sh $dip $on_duration $cong $nsend \
-                1> $of_name.stdout 2> $of_name.stderr
-
-        else
-            echo "Could not find cong '$cong'. It is either unsupported or not yet implemented"
-        fi
+            *)
+                ;;
+        esac
         ;;
 
     *)
