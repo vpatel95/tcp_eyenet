@@ -57,14 +57,18 @@ case $1 in
 
         output=$1
 
+        if [[ ! -d $output ]]; then
+            echo "Directory '$output' not found"
+            exit
+        fi
+
         for inp in $output/*-pcap-trace;
         do
             python3 pcap-tpt-graph.py $inp
         done
 
-        tputplot=$output/$output-tput-plot
+        tputplot=$output/tput-plot
         cat > $tputplot.gnuplot <<- EOM
-set output "${tputplot}.svg"
 set title "Throughput : Eyenet vs Cubic"
 set style fill transparent solid 0.5 noborder
 set xlabel "Time (s)"
@@ -72,26 +76,34 @@ set ylabel "Throughput (Mbits/s)"
 set xrange [0:19]
 set yrange [1:100]
 set logscale y
+set terminal svg
+set output "${tputplot}.svg"
 
 plot '${output}/cubic-pcap-trace-tptpoly.dat' using 1:2 with filledcurves title 'Cubic' lt 7, '${output}/eyenet-pcap-trace-tptpoly.dat' using 1:2 with filledcurves title 'Eyenet', 'Ideal' using 1:2 with lines lt 1 title "Ideal"
 EOM
 
-        gnuplot -p $tputplot.gnuplot
+        gnuplot -p ${tputplot}.gnuplot
+        inkscape --export-png=${tputplot}.png -b '#ffffff' -D ${tputplot}.svg
+        display ${tputplot}.png
 
-        jainplot=$output/$output-jain-plot
+        jainplot=$output/jain-plot
         cat > $jainplot.gnuplot <<- EOM
-set output "${jainplot}.svg"
 set title "Jain Index : Eyenet vs Cubic"
+set style fill transparent solid 0.5 noborder
+set key bottom
 set xlabel "Time (s)"
 set ylabel "Jain Index"
 set xrange [0:20]
-set yrange [0:1.5]
-set logscale y
+set yrange [0:1]
+set terminal svg
+set output "${jainplot}.svg"
 
 plot '${output}/cubic-pcap-trace-jain.dat' using 1:2 with lines title 'Cubic' lt 7, '${output}/eyenet-pcap-trace-jain.dat' using 1:2 with lines title 'Eyenet'
 EOM
 
-        gnuplot -p $jainplot.gnuplot
+        gnuplot -p ${jainplot}.gnuplot
+        inkscape --export-png=${jainplot}.png -b '#ffffff' -D ${jainplot}.svg
+        display ${jainplot}.png
         ;;
 
     *)

@@ -32,3 +32,13 @@
 *.app
 vns_sender
 vns_receiver
+
+# Statistics
+*.dat
+*.gnuplot
+*.uplink
+*.downlink
+*.stderr
+*.stdout
+*.stats
+*.tar.gz
