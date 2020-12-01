@@ -1,5 +1,7 @@
 #!/bin/bash
 
+TCP="eyenet cubic reno ledbat"
+
 usage() {
     echo "Usage:"
     echo "  $0 [run <output> <sip> <dip> <trace> <mdelay> <nsend> <sender>"
@@ -36,7 +38,16 @@ case $1 in
         qlen=`expr 2 \* $mdelay \* 12000000 / 8000`
         traffic=continuous
 
-        for tcp in "eyenet" "cubic"; do
+        for tcp in $TCP; do
+            case $tcp in
+                cubic|reno|ledbat)
+                    sudo sysctl -w net.ipv4.tcp_congestion_control=${tcp}
+                    sleep 2
+                    ;;
+                *)
+                    ;;
+            esac
+
             for (( i = 0; i < 11; i=i+1 )); do
                 loss_rate=`awk -v i=$i 'END{if(i < 5)print i * 0.002; else print (i-4) * 0.01}' /dev/null`
                 echo "Running on loss rate = $loss_rate"
@@ -46,7 +57,7 @@ case $1 in
                         delta_conf="do_ss:constant_delta:0.5"
                         bash run.sh run $output $tcp $sip $dip $trace $mdelay $loss_rate $nsend $qlen $delta_conf $traffic $sender
                         ;;
-                    cubic)
+                    cubic|reno|ledbat)
                         bash run.sh run $output $tcp $sip $dip $trace $mdelay $loss_rate $nsend $qlen
                 esac
 
@@ -56,6 +67,7 @@ case $1 in
                 mv ${output}/${tcp} $output/${tcp}::${loss_rate}
             done
         done
+        sudo sysctl -w net.ipv4.tcp_congestion_control=cubic
         ;;
 
     graph)
@@ -86,7 +98,7 @@ case $1 in
 
         # Create gnuplot script
         gnuplot_script="
-        set title 'Throughput vs Loss : Eyenet vs Cubic';
+        set title 'Throughput vs Loss';
         set xlabel 'Loss Rate'; set ylabel 'Throughput (Mbps)';
         set terminal png;
         set object 1 rectangle from screen 0,0 to screen 1,1 fillcolor rgb '#ffffff' behind;
