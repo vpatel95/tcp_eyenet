@@ -194,7 +194,7 @@ set title "Throughput (Mbps)"
 set xlabel "Time (sec)"
 set ylabel "Throughput (Mbps)"
 set style fill solid 0.2 noborder
-set terminal svg size 1024,560 fixed
+set terminal png size 1024,560 fixed
 set object 1 rectangle from screen 0,0 to screen 1,1 fillcolor rgb "#ffffff" behind
 set output "/dev/stdout"
 END

@@ -72,41 +72,33 @@ case $1 in
             exit
         fi
 
-        if [[ -d $output/graphs ]]; then
-            trash $output/graphs
-        fi
-        mkdir $output/graphs
-
         for tcp_dir in $output/*::*;
         do
             tcp=`expr "$tcp_dir" : ".*/\([^/]*\)::[0-9.]*"`
             loss=`expr "$tcp_dir" : ".*::\([0-9.]*\)"`
 
             # Gather statistics
-            mm-throughput-graph 100 $tcp_dir/$tcp.uplink > $output/graphs/${tcp}_${loss}.svg 2> $tcp_dir/$tcp.stats
-            inkscape --export-png=${output}/graphs/${tcp}_${loss}.png -b "#ffffff" -D ${output}/graphs/${tcp}_${loss}.svg
+            mm-throughput-graph 100 $tcp_dir/$tcp.uplink > $output/${tcp}_${loss}.png 2> $tcp_dir/$tcp.stats
             throughput=`grep throughput $tcp_dir/$tcp.stats | awk -F ' ' '{print $3}'`
             delay=`grep 95.*queueing $tcp_dir/$tcp.stats | awk -F ' ' '{print $6}'`
-            echo $loss $throughput $delay >> $output/graphs/$tcp.dat
+            echo $loss $throughput $delay >> $output/$tcp.dat
         done
 
         # Create gnuplot script
         gnuplot_script="
         set title 'Throughput vs Loss : Eyenet vs Cubic';
         set xlabel 'Loss Rate'; set ylabel 'Throughput (Mbps)';
-        set terminal svg;
+        set terminal png;
         set object 1 rectangle from screen 0,0 to screen 1,1 fillcolor rgb '#ffffff' behind;
-        set output '$output/graphs/tput-vs-loss.svg';
-        plot " >> $output/graphs/tput-vs-loss.gnuplot
-        for tcp in $output/graphs/*.dat; do
+        set output '$output/tput-vs-loss.png';
+        plot " >> $output/tput-vs-loss.gnuplot
+        for tcp in $output/*.dat; do
             tcp_nice=`expr "$tcp" : ".*/\([^/]*\).dat"`
-            echo $tcp $tcp_nice
             gnuplot_script="$gnuplot_script '$tcp' using 1:2 title '$tcp_nice' with lines, "
         done
-        echo $gnuplot_script > $output/graphs/tput-vs-loss.gnuplot
+        echo $gnuplot_script > $output/tput-vs-loss.gnuplot
 
-        gnuplot -p $output/graphs/tput-vs-loss.gnuplot
-        inkscape --export-png=$output/graphs/tput-vs-loss.png -b '#ffffff' -D $output/graphs/tput-vs-loss.svg
+        gnuplot -p $output/tput-vs-loss.gnuplot
         ;;
 
     clean)

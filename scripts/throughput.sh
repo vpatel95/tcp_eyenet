@@ -79,15 +79,13 @@ set ylabel "Throughput (Mbits/s)"
 set xrange [0:19]
 set yrange [1:100]
 set logscale y
-set terminal svg
-set output "${tputplot}.svg"
+set terminal png
+set output "${tputplot}.png"
 
-plot '${output}/cubic-pcap-trace-tptpoly.dat' using 1:2 with filledcurves title 'Cubic' lt 7, '${output}/eyenet-pcap-trace-tptpoly.dat' using 1:2 with filledcurves title 'Eyenet', 'Ideal' using 1:2 with lines lt 1 title "Ideal"
+plot '${output}/cubic-pcap-trace-tptpoly.dat' using 1:2 with filledcurves title 'Cubic' lt 7, '${output}/eyenet-pcap-trace-tptpoly.dat' using 1:2 with filledcurves title 'Eyenet'
 EOM
 
         gnuplot -p ${tputplot}.gnuplot
-        inkscape --export-png=${tputplot}.png -b '#ffffff' -D ${tputplot}.svg
-        display ${tputplot}.png
 
         jainplot=$output/jain-plot
         cat > $jainplot.gnuplot <<- EOM
@@ -98,15 +96,13 @@ set xlabel "Time (s)"
 set ylabel "Jain Index"
 set xrange [0:20]
 set yrange [0:1]
-set terminal svg
-set output "${jainplot}.svg"
+set terminal png
+set output "${jainplot}.png"
 
 plot '${output}/cubic-pcap-trace-jain.dat' using 1:2 with lines title 'Cubic' lt 7, '${output}/eyenet-pcap-trace-jain.dat' using 1:2 with lines title 'Eyenet'
 EOM
 
         gnuplot -p ${jainplot}.gnuplot
-        inkscape --export-png=${jainplot}.png -b '#ffffff' -D ${jainplot}.svg
-        display ${jainplot}.png
         ;;
 
     *)
