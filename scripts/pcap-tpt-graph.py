@@ -27,7 +27,11 @@ for ts, buf in pcap:
         prev_bucket = bucket
         bucket_start = ts
         bucket = {}
-    eth = dpkt.ethernet.Ethernet(buf)
+    try:
+        eth = dpkt.ethernet.Ethernet(buf)
+    except:
+        continue
+
     try:
        ip = dpkt.ip.IP(buf)
     except:

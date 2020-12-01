@@ -1,5 +1,7 @@
 #!/bin/bash
 
+TCP="eyenet cubic reno ledbat"
+
 case $1 in
     run)
         shift
@@ -19,16 +21,25 @@ case $1 in
 
         mkdir -p $output
 
-        for tcp in "eyenet" "cubic";
+        for tcp in $TCP;
         do
-            tcpdump -i $intf -n -w $output/$tcp-pcap-trace &
+            sudo tcpdump -i $intf -n -w $output/$tcp-pcap-trace &
+
+            case $tcp in
+                cubic|reno|ledbat)
+                    sudo sysctl -w net.ipv4.tcp_congestion_control=${tcp}
+                    sleep 2
+                    ;;
+                *)
+                    ::
+            esac
 
             sender_pids=""
             for (( i=0; i < $flows; i++ ));
             do
                 onduration=`expr 2 \* $intersend \* \( $flows - $i - 1 \) + 1`
                 case $tcp in
-                    cubic)
+                    cubic|reno|ledbat)
                         iperf -c $rip -Z $tcp -t $onduration -p 5001 &
                         sender_pids="$sender_pids $!"
                         ;;
@@ -46,7 +57,9 @@ case $1 in
 
             kill $sender_pids > /dev/null 2>&1
             pkill tcpdump > /dev/null 2>&1
+            sudo chown -R vagrant:vagrant $output
         done
+        sudo sysctl -w net.ipv4.tcp_congestion_control=cubic
         ;;
 
     graph)
@@ -70,39 +83,55 @@ case $1 in
             python3 pcap-tpt-graph.py $inp
         done
 
-        tputplot=$output/tput-plot
-        cat > $tputplot.gnuplot <<- EOM
-set title "Throughput : Eyenet vs Cubic"
-set style fill transparent solid 0.5 noborder
-set xlabel "Time (s)"
-set ylabel "Throughput (Mbits/s)"
-set xrange [0:19]
-set yrange [1:100]
-set logscale y
-set terminal png
-set output "${tputplot}.png"
+        tputplot=$output/tput
 
-plot '${output}/cubic-pcap-trace-tptpoly.dat' using 1:2 with filledcurves title 'Cubic' lt 7, '${output}/eyenet-pcap-trace-tptpoly.dat' using 1:2 with filledcurves title 'Eyenet'
-EOM
+        gplot_script="
+        set style fill transparent solid 0.5 noborder;
+        set xlabel 'Time (s)';
+        set ylabel 'Throughput (Mbits/s)';
+        set xrange [0:19];
+        set yrange [1:100];
+        set logscale y;
+        set terminal png;"
 
-        gnuplot -p ${tputplot}.gnuplot
+        gplot_tcp="plot '${output}/eyenet-pcap-trace-tptpoly.dat' using 1:2 with filledcurves title 'Eyenet'"
+        for tcp in $TCP;
+        do
+            case $tcp in
+                cubic|reno|ledbat)
+                    gplot_output="set title 'Throughput : Eyenet vs. ${tcp^}'; set output '${tputplot}-${tcp}.png';"
+                    gplot="${gplot_script} ${gplot_output} ${gplot_tcp}, '${output}/${tcp}-pcap-trace-tptpoly.dat' using 1:2 with filledcurves title '${tcp^}"
+                    ;;
+                *)
+                    ;;
+            esac
+            echo ${gplot} > ${tputplot}-${tcp}.gnuplot
+        done
 
         jainplot=$output/jain-plot
-        cat > $jainplot.gnuplot <<- EOM
-set title "Jain Index : Eyenet vs Cubic"
-set style fill transparent solid 0.5 noborder
-set key bottom
-set xlabel "Time (s)"
-set ylabel "Jain Index"
-set xrange [0:20]
-set yrange [0:1]
-set terminal png
-set output "${jainplot}.png"
+        gplot_script="
+        set title 'Jain Index';
+        set key bottom;
+        set style fill transparent solid 0.5 noborder;
+        set xlabel 'Time (s)';
+        set ylabel 'jain Index';
+        set xrange [0:20];
+        set yrange [0:1];
+        set terminal png;
+        set output '${jainplot}.png';
+        plot "
 
-plot '${output}/cubic-pcap-trace-jain.dat' using 1:2 with lines title 'Cubic' lt 7, '${output}/eyenet-pcap-trace-jain.dat' using 1:2 with lines title 'Eyenet'
-EOM
+        for tcp in $TCP;
+        do
+            gplot_script="${gplot_script} '${output}/${tcp}-pcap-trace-jain.dat' using 1:2 with lines title '${tcp^}', "
+        done
 
-        gnuplot -p ${jainplot}.gnuplot
+        echo ${gplot_script} > $jainplot.gnuplot
+
+        for plot in $output/*.gnuplot;
+        do
+            gnuplot -p ${plot}
+        done
         ;;
 
     *)

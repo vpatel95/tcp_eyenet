@@ -42,3 +42,4 @@ vns_receiver
 *.stdout
 *.stats
 *.tar.gz
+*pcap-trace
