@@ -4,9 +4,13 @@ import os
 import re
 import sys
 
+ALGO = ["eyenet", "cubic", "reno", "ledbat"]
+
 algo_map = {
     "eyenet" : "Eyenet",
-    "cubic" : "Cubic"
+    "cubic" : "Cubic",
+    "reno" : "Reno",
+    "ledbat" : "LEDBAT"
 }
 
 def parse_tcptrace(num_tcp, num_x, udp_x, filename):
@@ -94,7 +98,7 @@ def parse_experiment(dirname):
     dirs = [f for f in os.listdir(dirname) if os.path.isdir(os.path.join(dirname, f))]
     res = {}
     for alg in dirs:
-        if alg not in ["eyenet", "cubic", "reno"]:
+        if alg not in ALGO:
             print("Unknown algorithm {}".format(alg))
             exit()
 
